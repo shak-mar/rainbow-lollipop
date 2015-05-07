@@ -113,7 +113,9 @@ namespace RainbowLollipop {
                         break;
                     case Gdk.Key.Tab:
                         if (t != null)
-                            twv.needs_direct_input(do_key_press_event,e);
+                            twv.needs_direct_input((e)=>{
+                                do_key_press_event(e as Gdk.EventKey);
+                            },e);
                         else
                             do_key_press_event(e);
                         break;

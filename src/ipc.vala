@@ -29,45 +29,93 @@ namespace RainbowLollipop {
      *       To store arbitrary callback / parameter combinations
      */
     class IPCCallbackWrapper {
-        private IPCCallback cb;
-        private Gdk.EventKey e;
-        private TrackWebView w;
+        protected TrackWebView w;
+        protected IPCCallback cb;
+        protected Gee.ArrayList<GLib.Value?> args;
 
         /**
          * Construct a new IPC Callback wrapper
          */
-        public IPCCallbackWrapper(TrackWebView web, IPCCallback cb, Gdk.EventKey e) {
-            this.cb = cb;
-            this.e = e;
+        public IPCCallbackWrapper(TrackWebView web, IPCCallback cb, va_list al) {
             this.w = web;
-        }
-
-        /**
-         * Returns the callback function stored in this IPCCallbackWrapper
-         */
-        public IPCCallback get_callback() {
-            return this.cb;
-        }
-
-        /**
-         * Returns the Gdk.EventKey stored along this IPCCallbackWrapper
-         */
-        public Gdk.EventKey get_event() {
-            return this.e;
+            this.cb = cb;
+            this.args = new Gee.ArrayList<GLib.Value?>();
+            for (GLib.Value? v = al.arg<GLib.Value?>() ; v != null; v=al.arg<GLib.Value?>())
+                this.args.add(v);
         }
 
         /**
          * Returns the WebView associated with this IPCCallbackWrapper
+         * TODO: check if needed
          */
-        public TrackWebView get_webview() {
-            return this.w;
+        /*public TrackWebView get_webview() {
+           return this.w;
+        }*/
+
+        /**
+         * Returns the callback function stored in this IPCCallbackWrapper
+         * TODO: check if needed
+         */
+        /*public IPCCallback get_callback() {
+            return this.cb;
+        }*/
+
+        /**
+         * Returns the arguments stored along in this Callback
+         * TODO: check if needed
+         */
+        /*public Gee.ArrayList<GLib.Value> get_args() {
+            return this.args;
+        }*/
+
+        /**
+         * Add arguments that come from the answer
+         */
+        public void add_arg(GLib.Value g) {
+            this.args.add(g);
         }
+
+        /**
+         * Defines a default behaviour in case the call is not completed
+         * within the defined timeout
+         */
+        public virtual void timeout(){}
+
+        /**
+         * Defines a default behaviour in case the call succeeds 
+         */
+        public virtual void execute(){}
     }
+
+    class NeedsDirectInputCallback : IPCCallbackWrapper {
+        public NeedsDirectInputCallback(TrackWebView web, IPCCallback cb, ...) {
+            base(web,cb, va_list());
+        }
+        public override void timeout() {
+            this.cb(this.args[0]);
+        }
+
+        public override void execute() {
+            if (this.args.size == 2) {
+                if (this.args[1].get_int() == 1) {
+                    GLib.Idle.add(() => {
+                        this.w.key_press_event(this.args[0] as Gdk.EventKey);
+                        return false;
+                    });
+                } else {
+                    GLib.Idle.add(() => {
+                        this.cb(this.args[0] as Gdk.EventKey);
+                        return false;
+                    });
+                }
+            }
+        }
+    }   
 
     /**
      * A callback that is called when an IPC call has finished successfully
      */
-    public delegate void IPCCallback(Gdk.EventKey e);
+    public delegate void IPCCallback(GLib.Value? v, ...);
 
     /**
      * The ZMQVent distributes ipc calls to each available WebExtension.
@@ -101,7 +149,7 @@ namespace RainbowLollipop {
             uint64 page_id = w.get_page_id();
             //Create Callback
             uint32 callid = callcounter++;
-            var cbw = new IPCCallbackWrapper(w, cb, e);
+            var cbw = new NeedsDirectInputCallback(w, cb, e);
             ZMQSink.register_callback(callid, cbw);
             string msgstring = IPCProtocol.NEEDS_DIRECT_INPUT+
                                IPCProtocol.SEPARATOR+
@@ -112,6 +160,14 @@ namespace RainbowLollipop {
                 var msg = ZMQ.Msg.with_data(msgstring.data);
                 msg.send(sender);
             }
+        }
+
+        /**
+         * Issues a call to a webview that should return the current scroll position
+         * TODO: implement
+         */
+        public static async long[] get_scroll_info(TrackWebView w, IPCCallback cb) {
+            return {0,0};
         }
 
         /**
@@ -152,7 +208,7 @@ namespace RainbowLollipop {
             Timeout.add(500,()=>{
                 IPCCallbackWrapper? _cbw = ZMQSink.callbacks.get(callid);
                 if (_cbw != null) {
-                    _cbw.get_callback()(_cbw.get_event());
+                    _cbw.timeout();
                     ZMQSink.callbacks.unset(callid);
                 }
                 return false;
@@ -201,17 +257,9 @@ namespace RainbowLollipop {
                     ZMQSink.callbacks.unset(call_id);
                     return;
                 }
-                if (result == 1) {
-                    GLib.Idle.add(() => {
-                        cbw.get_webview().key_press_event(cbw.get_event());
-                        return false;
-                    });
-                } else {
-                    GLib.Idle.add(() => {
-                        cbw.get_callback()(cbw.get_event());
-                        return false;
-                    });
-                }
+                var cbw_casted = cbw as NeedsDirectInputCallback;
+                cbw_casted.add_arg(result);
+                cbw_casted.execute();
                 ZMQSink.callbacks.unset(call_id);
             }
             return;
