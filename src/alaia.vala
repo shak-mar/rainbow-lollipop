@@ -258,8 +258,11 @@ namespace RainbowLollipop {
 
             if (this.old_session_available())
                 this.state = SessiondialogState.S();
-            else
+            else {
                 this.state = TracklistState.S();
+                this.start_session_autosave();
+            }
+
 
             // Initialize webkit environment
             WebKit.WebContext.get_default().set_process_model(
@@ -474,6 +477,17 @@ namespace RainbowLollipop {
                         break;
                 }
             }
+        }
+
+        /**
+         * Starts an everlasting timeout job that saves the session
+         * every minute
+         */
+        public void start_session_autosave() {
+            Timeout.add_seconds(60, ()=>{
+                this.save_session();
+                return true;
+            });
         }
 
         /**
