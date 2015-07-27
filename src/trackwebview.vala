@@ -45,6 +45,7 @@ namespace RainbowLollipop {
             webactor.add_child(this.search);
             this.button_press_event.connect(do_button_press_event);
             this.mouse_target_changed.connect(do_mouse_target_changed);
+            this.notify["is-playing-audio"].connect(do_update_playing_audio);
         }
 
         /**
@@ -78,6 +79,14 @@ namespace RainbowLollipop {
          */
         public void do_mouse_target_changed(WebKit.HitTestResult htr, uint modifiers) {
             this._last_link = htr.link_uri;
+        }
+
+        /**
+         * Displays an icon over the current node of this track when audio is
+         * played.
+         */
+        public void do_update_playing_audio() {
+            this.track.set_audio_playing(this.is_playing_audio);
         }
 
         /**
