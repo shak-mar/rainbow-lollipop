@@ -295,13 +295,13 @@ namespace RainbowLollipop {
             action.deceleration = 0.75;
             this.nodecontainer.add_action(action);
 
-            var audio_icon_path = Application.get_data_filename("audio_overlay.png");
-            this.audio_icon = new Cairo.ImageSurface.from_png(audio_icon_path);
+            var icon_theme = Gtk.IconTheme.get_default();
+            var audio_icon_buf = icon_theme.load_icon("audio-volume-high", 128, Gtk.IconLookupFlags.FORCE_SIZE);
+            this.audio_icon = Gdk.cairo_surface_create_from_pixbuf(audio_icon_buf, 1, null);
             this.a_audio_icon = new Clutter.Actor();
             this.a_audio_icon.height=this.a_audio_icon.width=Config.c.node_height;
-            this.a_audio_icon.x = 0;
-            this.a_audio_icon.y = 0;
-            this.a_audio_icon.opacity = 0x80;
+            this.a_audio_icon.x = this.a_audio_icon.y = 0;
+            this.a_audio_icon.opacity = 0xD0;
             this.c_audio_icon = new Clutter.Canvas();
             this.c_audio_icon.set_size(Config.c.node_height, Config.c.node_height);
             this.c_audio_icon.draw.connect(do_draw_audio_icon);
@@ -350,7 +350,9 @@ namespace RainbowLollipop {
             cr.arc(w/2,h/2,Config.c.node_height/2-(int)Config.c.bullet_stroke*1.5,0,2*Math.PI);
             cr.fill();
             cr.save();
-            cr.scale(w/width,h/height);
+            var margin = Config.c.bullet_stroke*2;
+            cr.translate(margin, margin);
+            cr.scale((w-margin*2)/width,(h-margin*2)/height);
             cr.set_source_surface(this.audio_icon,0,0);
             cr.set_operator(Cairo.Operator.OVER);
             cr.paint();
