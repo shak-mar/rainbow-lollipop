@@ -87,6 +87,13 @@ namespace RainbowLollipop {
         private bool reload_needed = true;
 
         /**
+         * Audio indicator icon
+         */
+        private Cairo.Surface audio_icon;
+        private Clutter.Actor a_audio_icon;
+        private Clutter.Canvas c_audio_icon;
+
+        /**
          * Add a node to this HistoryTrack
          */
         public void add_node(Node n, bool recursive=false) {
@@ -287,6 +294,19 @@ namespace RainbowLollipop {
             action.interpolate = true;
             action.deceleration = 0.75;
             this.nodecontainer.add_action(action);
+
+            var icon_theme = Gtk.IconTheme.get_default();
+            var audio_icon_buf = icon_theme.load_icon("audio-volume-high", 128, Gtk.IconLookupFlags.FORCE_SIZE);
+            this.audio_icon = Gdk.cairo_surface_create_from_pixbuf(audio_icon_buf, 1, null);
+            this.a_audio_icon = new Clutter.Actor();
+            this.a_audio_icon.height=this.a_audio_icon.width=Config.c.node_height;
+            this.a_audio_icon.x = this.a_audio_icon.y = 0;
+            this.a_audio_icon.opacity = 0xD0;
+            this.c_audio_icon = new Clutter.Canvas();
+            this.c_audio_icon.set_size(Config.c.node_height, Config.c.node_height);
+            this.c_audio_icon.draw.connect(do_draw_audio_icon);
+            this.c_audio_icon.invalidate();
+            this.a_audio_icon.content = this.c_audio_icon;
         }
 
         /**
@@ -311,6 +331,46 @@ namespace RainbowLollipop {
             cr.set_source(grad);
             cr.fill();
             return true;
+        }
+
+        /**
+         * Draws the audio overlay
+         */
+        private bool do_draw_audio_icon(Cairo.Context cr, int w, int h) {
+            var aicx = new Cairo.Context(this.audio_icon);
+            double x1,x2,y1,y2;
+            aicx.clip_extents(out x1,out y1,out x2,out y2);
+            double width = x2-x1;
+            double height = y2-y1;
+            cr.set_source_rgba(0,0,0,0);
+            cr.set_operator(Cairo.Operator.SOURCE);
+            cr.paint();
+            cr.set_source_rgba(0,0,0,1);
+            cr.set_operator(Cairo.Operator.SOURCE);
+            cr.arc(w/2,h/2,Config.c.node_height/2-(int)Config.c.bullet_stroke*1.5,0,2*Math.PI);
+            cr.fill();
+            cr.save();
+            var margin = Config.c.bullet_stroke*2;
+            cr.translate(margin, margin);
+            cr.scale((w-margin*2)/width,(h-margin*2)/height);
+            cr.set_source_surface(this.audio_icon,0,0);
+            cr.set_operator(Cairo.Operator.OVER);
+            cr.paint();
+            cr.restore();
+            return true;
+        }
+
+        /**
+         * Adds and removes the audio overlay
+         */
+        public void set_audio_playing(bool playing) {
+            var parent_node = this.a_audio_icon.get_parent();
+            if (parent_node != null) {
+                parent_node.remove_child(this.a_audio_icon);
+            }
+            if (playing) {
+                this._current_node.add_child(this.a_audio_icon);
+            }
         }
 
         /**
@@ -389,6 +449,10 @@ namespace RainbowLollipop {
          */
         private void config_update() {
             this.calculate_height();
+
+            this.a_audio_icon.height=this.a_audio_icon.width=Config.c.node_height;
+            this.c_audio_icon.set_size(Config.c.node_height, Config.c.node_height);
+            this.a_audio_icon.content.invalidate();
         }
 
         /**
