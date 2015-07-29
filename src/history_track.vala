@@ -590,6 +590,9 @@ namespace RainbowLollipop {
          */
         public new void delete_track() {
             this.close_button.destroy();
+            if (this.tracklist.current_track == this) {
+                this.tracklist.current_track = (HistoryTrack) this.get_previous_sibling();
+            }
             Application.S().destroy_web_view(this);
             base.delete_track();
         }
