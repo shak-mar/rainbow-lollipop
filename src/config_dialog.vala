@@ -59,6 +59,9 @@ namespace RainbowLollipop {
         private Gtk.Label bullet_stroke_label;
         private Gtk.SpinButton bullet_stroke_spinbutton;
 
+        private Gtk.Label colorscheme_label;
+        private Gtk.ComboBoxText colorscheme_combobox;
+
         private Gtk.Grid security_box;
 
         private Gtk.Label https_everywhere_label;
@@ -74,6 +77,7 @@ namespace RainbowLollipop {
             CONNECTOR_STROKE,
             BULLET_STROKE,
             HTTPS_EVERYWHERE,
+            COLORSCHEME,
         }
 
         public ConfigDialog (Clutter.Actor stage) {
@@ -162,6 +166,14 @@ namespace RainbowLollipop {
             this.ui_box.attach(this.bullet_stroke_label,0,7,1,1);
             this.ui_box.attach(this.bullet_stroke_spinbutton,1,7,1,1);
 
+            this.colorscheme_label = new Gtk.Label(_("Colorscheme"));
+            this.colorscheme_combobox = new Gtk.ComboBoxText();
+            this.colorscheme_combobox.changed.connect(()=>{
+                this.update_value(ConfigOption.COLORSCHEME);
+            });
+            this.ui_box.attach(this.colorscheme_label,0,8,1,1);
+            this.ui_box.attach(this.colorscheme_combobox,1,8,1,1);
+
             this.notebook.append_page(this.ui_box, new Gtk.Label(_("UI")));
 
             this.security_box = new Gtk.Grid();
@@ -188,6 +200,28 @@ namespace RainbowLollipop {
             this.add_child(this.dialog_container);
             this.notebook.show_all();
             this.visible = false;
+
+            // Load Colorschemes
+            try {
+                string dir = Application.get_data_filename(Config.C_COLORS);
+                Dir cs_dir = Dir.open(dir, 0);
+                string? name = null;
+                int scheme_idx = 0;
+                while ((name = cs_dir.read_name()) != null) {
+                    string path = Path.build_filename(dir, name);
+                    if (FileUtils.test (path, FileTest.IS_REGULAR)
+                        && name.has_suffix(".json")) {
+                        scheme_idx++;
+                        string id = "%d".printf(scheme_idx);
+                        this.colorscheme_combobox.append(id, name.substring(0, name.length - 5));
+                        if (name.substring(0, name.length - 5) == Config.c.colorscheme_name) {
+                            this.colorscheme_combobox.active_id = id;
+                        }
+                    }
+                }
+            } catch (GLib.FileError e) {
+                stdout.printf(_("Could not open Colorscheme folder."));
+            }
         }
 
         private void update_value(ConfigOption o) {
@@ -218,6 +252,9 @@ namespace RainbowLollipop {
                     break;
                 case ConfigOption.HTTPS_EVERYWHERE:
                     Config.c.https_everywhere = this.https_everywhere_switch.get_active();
+                    break;
+                case ConfigOption.COLORSCHEME:
+                    Config.c.colorscheme_name = this.colorscheme_combobox.get_active_text();
                     break;
             }
             this.get_stage().queue_redraw();

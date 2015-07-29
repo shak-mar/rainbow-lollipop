@@ -63,7 +63,7 @@ namespace RainbowLollipop {
          * Holds a reference to the colorscheme that is currently in use
          */
         public Colorscheme colorscheme {get; set;}
-        private string colorscheme_name = "";
+        public string colorscheme_name = "";
         
         /**
          * Reference to a global instance of Config
@@ -173,6 +173,9 @@ namespace RainbowLollipop {
 
             b.set_member_name("input_handler");
             b.add_int_value(this.input_handler);
+
+            b.set_member_name("colorscheme");
+            b.add_string_value(this.colorscheme_name);
 
             b.end_object();
 
