@@ -358,12 +358,14 @@ namespace RainbowLollipop {
 
             var default_fav_path = Application.get_data_filename("nofav.png");
             this.favicon = new Cairo.ImageSurface.from_png(default_fav_path);
+            var fav_width = ((Cairo.ImageSurface) this.favicon).get_width();
+            var fav_height = ((Cairo.ImageSurface) this.favicon).get_height();
             this.favactor = new Clutter.Actor();
             this.favactor.height=this.favactor.width=Config.c.favicon_size;
             this.favactor.x = this.width/2-this.favactor.width/2;
             this.favactor.y = this.height/2-this.favactor.height/2;
             this.favactor_canvas = new Clutter.Canvas();
-            this.favactor_canvas.set_size(Config.c.favicon_size,Config.c.favicon_size);
+            this.favactor_canvas.set_size(fav_width, fav_height);
             this.favactor_canvas.draw.connect(do_draw_favactor);
             this.favactor.content = this.favactor_canvas;
             this.url_tooltip = new NodeTooltip(this, this._url);
@@ -396,7 +398,6 @@ namespace RainbowLollipop {
             this.favactor.height=this.favactor.width=Config.c.favicon_size;
             this.favactor.x = this.width/2-this.favactor.width/2;
             this.favactor.y = this.height/2-this.favactor.height/2;
-            this.favactor.content.invalidate();
         }
 
         /**
@@ -603,6 +604,9 @@ namespace RainbowLollipop {
          */
         public void set_favicon(Cairo.Surface px) {
             this.favicon=px;
+            var fav_width = ((Cairo.ImageSurface) px).get_width();
+            var fav_height = ((Cairo.ImageSurface) px).get_height();
+            this.favactor_canvas.set_size(fav_width, fav_height);
             this.favactor_canvas.invalidate();
         }
 
