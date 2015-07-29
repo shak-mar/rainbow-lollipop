@@ -73,7 +73,7 @@ public class ZMQWorker {
         while (true) {
             var input = ZMQ.Msg();
             input.recv(receiver);
-            string in_data = (string)input.data;
+            string in_data = ((string) input.data).substring(0, (int) input.size());
             string out_data = ZMQWorker.handle_request(in_data);
             if (out_data != null){
                 var output = ZMQ.Msg.with_data(out_data.data);

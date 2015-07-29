@@ -312,7 +312,7 @@ namespace RainbowLollipop {
         public void delete_node(bool rec_initial=true) {
             bool need_new_current_node = false;
             if (rec_initial) {
-                need_new_current_node = this.contains_current_node();
+                need_new_current_node = this == this.track.current_node || this.contains_current_node();
             }
             var prv = this.previous;
             Gee.ArrayList<Node> nodes = new Gee.ArrayList<Node>();

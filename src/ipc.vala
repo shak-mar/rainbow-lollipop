@@ -279,7 +279,8 @@ namespace RainbowLollipop {
             while (true) {
                 var input = ZMQ.Msg(); 
                 input.recv(receiver);
-                ZMQSink.handle_response((string)input.data);
+                string in_data = ((string) input.data).substring(0, (int) input.size());
+                ZMQSink.handle_response(in_data);
             }
         }
 
