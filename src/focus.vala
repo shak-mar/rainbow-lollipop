@@ -47,8 +47,16 @@ namespace RainbowLollipop {
                     this._focused_object.remove_child(this);
                 this._focused_object = value;
                 this._focused_object.add_child(this);
-                this.set_size(this._focused_object.width, this._focused_object.height);
-                this.c.set_size((int)this._focused_object.width, (int)this._focused_object.height);
+
+                var focus_box = this._focused_object.allocation;
+                float focus_width = this._focused_object.width;
+                float focus_height = this._focused_object.height;
+                if (focus_box.get_width() != 0) {
+                    focus_width = focus_box.get_width();
+                    focus_height = focus_box.get_height();
+                }
+                this.set_size(focus_width, focus_height);
+                this.c.set_size((int) focus_width, (int) focus_height);
             }
         }
 
