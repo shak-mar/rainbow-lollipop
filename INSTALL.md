@@ -1,6 +1,6 @@
 # Installing rainbow lollipop
 
-## Debian (Jessie)
+## Debian (Jessie) / Ubuntu (> 15.04)
 
 	# apt-get install libgtk-3-dev libgee-0.8-dev libclutter-1.0-dev libzmq-dev libwebkit2gtk-4.0-dev libclutter-gtk-1.0-dev
 	# apt-get install valac-0.26
