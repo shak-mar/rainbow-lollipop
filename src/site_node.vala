@@ -369,7 +369,6 @@ namespace RainbowLollipop {
             this.favactor_canvas.draw.connect(do_draw_favactor);
             this.favactor.content = this.favactor_canvas;
             this.url_tooltip = new NodeTooltip(this, this._url);
-            this.add_child(this.url_tooltip);
             this.url_tooltip.x = -this.url_tooltip.width/2+Config.c.node_height/2;
             this.url_tooltip.y = Config.c.node_height;
             this.bullet = new NodeBullet(this);
@@ -385,6 +384,7 @@ namespace RainbowLollipop {
             this.add_child(this.bullet);
             this.add_child(this.favactor);
             this.add_child(this.spinner);
+            this.add_child(this.url_tooltip);
             this.track.calculate_height();
             this.clickaction.clicked.connect(do_clicked);
             this.favactor.content.invalidate();
@@ -398,6 +398,8 @@ namespace RainbowLollipop {
             this.favactor.height=this.favactor.width=Config.c.favicon_size;
             this.favactor.x = this.width/2-this.favactor.width/2;
             this.favactor.y = this.height/2-this.favactor.height/2;
+            this.url_tooltip.x = -this.url_tooltip.width/2+Config.c.node_height/2;
+            this.url_tooltip.y = Config.c.node_height;
         }
 
         /**
