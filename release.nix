@@ -1,14 +1,31 @@
 with import <nixpkgs/lib>;
 
 let
+  libhttpseverywhere = pkgs: with pkgs; stdenv.mkDerivation rec {
+    name = "libhttpseverywhere-${version}";
+    version = "0.0.2";
+    src = fetchgit {
+        url = "https://github.com/grindhold/libhttpseverywhere/";
+        sha256 = "0hp9szklp8g5bkcm47vbkhspwjdm5x4ghhgwp9yd201s2qkl0hsq";
+        rev = "5827c6bca6891a136e4f93768f642f57b5d1cbd9"; # Version 0.0.2
+        fetchSubmodules = true;
+    };
+    patches = [ ./libhttpseverywhere_no_rulesets_target.patch ];
+    dontUseCmakeBuildDir = true;
+    buildInputs = [
+      cmake vala_0_28 pkgconfig glib gtk3 gnome3.libgee libxml2 git
+    ];
+  };
+
   rainbowLollipop = pkgs: with pkgs; stdenv.mkDerivation rec {
     name = "rainbow-lollipop-${version}";
     version = "0.0.1";
     src = ./.;
 
+    dontUseCmakeBuildDir = true;
     buildInputs = [
-      cmake vala_0_26 zeromq pkgconfig glib gtk3 clutter_gtk webkitgtk
-      gnome3.libgee sqlite gettext
+      cmake vala_0_28 zeromq pkgconfig glib gtk3 clutter_gtk webkitgtk
+      gnome3.libgee sqlite gettext epoxy (libhttpseverywhere pkgs)
     ] ++ optionals (!(stdenv ? cross)) [
       udev xorg.libpthreadstubs xorg.libXdmcp xorg.libxshmfence libxkbcommon
     ];

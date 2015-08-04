@@ -1,0 +1,21 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 44d162a..10b1e58 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -92,16 +92,6 @@ add_definitions(-w)
+ 
+ add_library("httpseverywhere" SHARED ${VALA_LIB_C})  
+ 
+-add_custom_target(rulesets ALL
+-    COMMAND
+-        git submodule init
+-    COMMAND
+-        git submodule update
+-    COMMENT
+-        "Fetching Rulesets"
+-)    
+-        
+-
+ add_custom_target(typelib ALL
+     COMMAND
+         g-ir-compiler --shared-library=libhttpseverywhere.so HTTPSEverywhere-${VERSION}.gir
